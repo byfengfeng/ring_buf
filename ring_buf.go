@@ -14,7 +14,7 @@ const (
 
 type ringBuf struct {
 	shrinkageCount uint8         //缩容阈值计数 protected add or shrinkage buf size operate
-	readWait       bool          //读等待  is the read wait
+	readWait       uint8         //读等待  is the read wait
 	isDataEmpty    bool          //数据是否可读  is the data readable
 	closeStatus    bool          //关闭状态 ring buf close status
 	bufSize        uint32        //实体大小 array size
@@ -251,12 +251,12 @@ func (r *ringBuf) ringEv() {
 					r.resTransmit <- bytes
 				}
 			} else {
-				r.readWait = true
+				r.readWait++
 			}
 		case data := <-r.reqTransmit:
 			r.write(data)
-			if r.readWait {
-				r.readWait = false
+			for r.readWait > 0 {
+				r.readWait--
 				n := r.read(length)
 				if n > zero {
 					l := binary.BigEndian.Uint16(length)
@@ -266,7 +266,6 @@ func (r *ringBuf) ringEv() {
 						r.resTransmit <- bytes
 					}
 				}
-				continue
 			}
 		case <-r.destroySignal:
 			return
