@@ -1,0 +1,8 @@
+*.sum
+*.test
+*.prof
+output/*_dev.yml
+.idea
+output/global
+output/game
+*.exe
