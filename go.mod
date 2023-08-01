@@ -1,3 +1,3 @@
-module github.com/Byfengfeng/ring_buf
+module github.com/byfengfeng/ring_buf
 
 go 1.19
