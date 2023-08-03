@@ -4,7 +4,7 @@ English | [中文](README_ZH.md)
 
 `ring_buf` It is a high-performance ring cache built from an array.
 
-`ring_buf` It integrates functions such as array expansion, shrinkage, reading without data hibernation, etc.
+`ring_buf` Integrated array expansion, scaling, and other functions.
 
 # 🚀 Features
 

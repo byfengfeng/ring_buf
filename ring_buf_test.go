@@ -68,7 +68,7 @@ func decode() {
 }
 
 func TestNet(t *testing.T) {
-	ringBuff := NewRingBuff()
+	ringBuff := NewRingBuff(nil)
 	go func() {
 		listen, err := net.Listen("tcp", ":9998")
 		if err != nil {
@@ -94,6 +94,7 @@ func TestNet(t *testing.T) {
 			//for j := 0; i > j; j++ {
 			//	t1 = append(t1, []byte(fmt.Sprintf("%d", j))...)
 			//}
+			t1 = []byte(fmt.Sprintf("%d", i+1))
 			data := Encode(t1)
 			conn.Write(data)
 		}
@@ -106,7 +107,7 @@ func TestRingBuff_Write(t *testing.T) {
 	testMap()
 	for j := 0; j < 1; j++ {
 		go func(index int) {
-			ringBuff := NewRingBuff()
+			ringBuff := NewRingBuff(nil)
 			checkList := make([]string, testSize)
 			go func() {
 				//time.Sleep(1 * time.Second)

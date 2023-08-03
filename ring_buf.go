@@ -15,7 +15,6 @@ const (
 type ringBuf struct {
 	shrinkageCount uint8         //缩容阈值计数 protected add or shrinkage buf size operate
 	readWait       uint8         //读等待  is the read wait
-	isTransmit     bool          //是否标记  is the data readable
 	isDataEmpty    bool          //数据是否可读  is the data readable
 	closeStatus    bool          //关闭状态 ring buf close status
 	bufSize        uint32        //实体大小 array size
@@ -29,20 +28,14 @@ type ringBuf struct {
 	destroySignal  chan struct{} //ringBuf destroySignal signal
 }
 
-func NewRingBuff(resTransmit chan []byte) RingBuf {
-	isTransmit := true
-	if resTransmit == nil {
-		resTransmit = make(chan []byte)
-		isTransmit = false
-	}
+func NewRingBuff() RingBuf {
 	r := &ringBuf{
 		isDataEmpty:   true,
-		isTransmit:    isTransmit,
 		bufSize:       ringBufSize,
 		buf:           make([]byte, ringBufSize),
 		enCodeBuf:     Get(dataPackSize),
 		reqTransmit:   make(chan []byte),
-		resTransmit:   resTransmit,
+		resTransmit:   make(chan []byte),
 		readSignal:    make(chan struct{}),
 		destroySignal: make(chan struct{}),
 	}
@@ -53,14 +46,6 @@ func NewRingBuff(resTransmit chan []byte) RingBuf {
 // Init 环形缓存读取初始化 ringBuf read Init
 func (r *ringBuf) Init() {
 	go r.ringEv()
-	if r.isTransmit {
-		r.Transmit()
-	}
-}
-
-// Transmit 标记下一次读取
-func (r *ringBuf) Transmit() {
-	r.readSignal <- struct{}{}
 }
 
 // Read 读取数据 read ringBuf data
