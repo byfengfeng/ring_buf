@@ -256,7 +256,6 @@ func (r *ringBuf) ringEv() {
 		case data := <-r.reqTransmit:
 			r.write(data)
 			for r.readWait > 0 {
-				r.readWait--
 				n := r.read(length)
 				if n > zero {
 					l := binary.BigEndian.Uint16(length)
@@ -264,6 +263,7 @@ func (r *ringBuf) ringEv() {
 					n1 := r.read(bytes)
 					if n1 > zero {
 						r.resTransmit <- bytes
+						r.readWait--
 					}
 				}
 			}
