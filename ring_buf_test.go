@@ -31,26 +31,6 @@ func testMap() {
 func read(accept net.Conn, ringBuff RingBuf) {
 	go func() {
 		for {
-			head := make([]byte, 2)
-			n, err := accept.Read(head)
-			if err != nil {
-				panic(err)
-			}
-			if n == 2 {
-				l := binary.BigEndian.Uint16(head)
-				data := make([]byte, l)
-				n1, err1 := accept.Read(data)
-				if err1 != nil {
-					panic(err)
-				}
-				if uint16(n1) == l {
-					ringBuff.Write(data)
-				}
-			}
-		}
-	}()
-	go func() {
-		for {
 			by := ringBuff.Read()
 			if by == nil {
 				return
@@ -58,6 +38,25 @@ func read(accept net.Conn, ringBuff RingBuf) {
 			fmt.Println(string(by))
 		}
 	}()
+	head := make([]byte, 4)
+	for {
+		n, err := accept.Read(head)
+		if err != nil {
+			panic(err)
+		}
+		if n == 4 {
+			l := binary.BigEndian.Uint32(head)
+			data := make([]byte, l-4)
+			n1, err1 := accept.Read(data)
+			if err1 != nil {
+				panic(err)
+			}
+			if uint32(n1) == l-4 {
+				ringBuff.Write(data)
+			}
+		}
+	}
+
 }
 
 func excode() {
@@ -69,32 +68,32 @@ func decode() {
 }
 
 func TestNet(t *testing.T) {
-	//ringBuff := NewRingBuff()
-	//go func() {
-	//	listen, err := net.Listen("tcp", ":8888")
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	for {
-	//		accept, err2 := listen.Accept()
-	//		if err2 != nil {
-	//			panic(err2)
-	//		}
-	//		go read(accept, ringBuff)
-	//	}
-	//}()
-	//time.Sleep(1 * time.Second)
+	ringBuff := NewRingBuff()
+	go func() {
+		listen, err := net.Listen("tcp", ":9998")
+		if err != nil {
+			panic(err)
+		}
+		for {
+			accept, err2 := listen.Accept()
+			if err2 != nil {
+				panic(err2)
+			}
+			go read(accept, ringBuff)
+		}
+	}()
+	time.Sleep(1 * time.Second)
 	go func() {
 		conn, err := net.Dial("tcp", ":9998")
 		if err != nil {
 			panic(err)
 		}
+		t1 := []byte("123456789")
+		for i := 0; i < 10000; i++ {
 
-		for i := 0; i <= 10000; i++ {
-			t1 := []byte("")
-			for j := 0; i > j; j++ {
-				t1 = append(t1, []byte(fmt.Sprintf("%d", j))...)
-			}
+			//for j := 0; i > j; j++ {
+			//	t1 = append(t1, []byte(fmt.Sprintf("%d", j))...)
+			//}
 			data := Encode(t1)
 			conn.Write(data)
 		}
