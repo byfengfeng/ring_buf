@@ -28,14 +28,17 @@ type ringBuf struct {
 	destroySignal  chan struct{} //ringBuf destroySignal signal
 }
 
-func NewRingBuff() RingBuf {
+func NewRingBuff(resTransmit chan []byte) RingBuf {
+	if resTransmit == nil {
+		resTransmit = make(chan []byte)
+	}
 	r := &ringBuf{
 		isDataEmpty:   true,
 		bufSize:       ringBufSize,
 		buf:           make([]byte, ringBufSize),
 		enCodeBuf:     Get(dataPackSize),
 		reqTransmit:   make(chan []byte),
-		resTransmit:   make(chan []byte),
+		resTransmit:   resTransmit,
 		readSignal:    make(chan struct{}),
 		destroySignal: make(chan struct{}),
 	}
